@@ -11,3 +11,10 @@ llm = ChatOpenAI(model="gpt-4o",
     max_retries=2,)
 
 memory = ConversationBufferMemory() #A basic memory implementation that simply stores the conversation history.
+
+def get_villain_response(user_input:str):
+    #we need to get the input from db for the villain
+    prompt = SYSTEM_PROMPT
+    response = llm.get_response(prompt, user_input)
+    print(response)
+    
