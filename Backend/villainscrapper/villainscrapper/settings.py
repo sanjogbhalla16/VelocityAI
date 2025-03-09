@@ -91,6 +91,20 @@ ROBOTSTXT_OBEY = True
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy_playwright.middleware.PlaywrightMiddleware': 543,
+# Enable Playwright
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
 }
+
+PLAYWRIGHT_BROWSER_TYPE = "chromium"
+PLAYWRIGHT_LAUNCH_OPTIONS = {"headless": True}
+
+# Increase concurrent requests for better performance
+CONCURRENT_REQUESTS = 5
+
+# Enable AutoThrottle to avoid getting blocked
+AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_START_DELAY = 1
+AUTOTHROTTLE_MAX_DELAY = 5
+AUTOTHROTTLE_TARGET_CONCURRENCY = 2.0
