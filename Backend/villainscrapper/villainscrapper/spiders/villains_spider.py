@@ -1,6 +1,8 @@
 import scrapy
 from scrapy_playwright.page import PageMethod
 from urllib.parse import urljoin
+from cassandra.cluster import Cluster
+from cassandra.auth import PlainTextAuthProvider
 
 class VillainsSpider(scrapy.Spider):
     name = "villains"
@@ -10,10 +12,13 @@ class VillainsSpider(scrapy.Spider):
     custom_settings = {
         "PLAYWRIGHT_BROWSER_TYPE": "chromium",
         "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},  # Change to False for debugging
-        "DOWNLOAD_HANDLERS": {"http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-                              "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler"},
+        "DOWNLOAD_HANDLERS": {
+            "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+        },
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-        "CONCURRENT_REQUESTS": 5
+        "CONCURRENT_REQUESTS": 5,
+        "LOG_LEVEL": "INFO",
     }
 
     def start_requests(self):
@@ -23,7 +28,7 @@ class VillainsSpider(scrapy.Spider):
                 meta={
                     "playwright": True,
                     "playwright_page_methods": [
-                        PageMethod("wait_for_selector", ".category-page__members-wrapper"),
+                        PageMethod("wait_for_selector", ".category-page__members-wrapper", timeout=10000),
                         PageMethod("evaluate", "window.scrollBy(0, document.body.scrollHeight)"),
                     ],
                 },
@@ -33,18 +38,17 @@ class VillainsSpider(scrapy.Spider):
     def parse(self, response):
         self.logger.info(f"Scraping URL: {response.url}")
 
-        # Debug: Print full HTML to check if Playwright is loading content
-        with open("debug.html", "w", encoding="utf-8") as f:
+        # Save response for debugging
+        with open("scrapy_debug.html", "w", encoding="utf-8") as f:
             f.write(response.text)
 
-        # Extract all villain links
+        # Extract villain links
         villains = response.css(".category-page__members-wrapper a::attr(href)").getall()
         if not villains:
             self.logger.warning("No villains found. Check selectors.")
 
         for villain in villains:
             full_url = urljoin(response.url, villain)
-            self.logger.info(f"Extracted Villain: {villain.split('/')[-1].replace('_', ' ')} - {full_url}")
             yield {"name": villain.split("/")[-1].replace("_", " "), "url": full_url}
 
         # Handle pagination
@@ -58,7 +62,7 @@ class VillainsSpider(scrapy.Spider):
                 meta={
                     "playwright": True,
                     "playwright_page_methods": [
-                        PageMethod("wait_for_selector", ".category-page__members-wrapper"),
+                        PageMethod("wait_for_selector", ".category-page__members-wrapper", timeout=10000),
                         PageMethod("evaluate", "window.scrollBy(0, document.body.scrollHeight)"),
                     ],
                 },
