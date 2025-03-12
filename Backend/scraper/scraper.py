@@ -1,4 +1,4 @@
-from pydantic import BaseModel,Httpurl
+from pydantic import BaseModel, HttpUrl
 from typing import List,Optional
 from bs4 import BeautifulSoup
 from pyppeteer import launch
@@ -21,7 +21,7 @@ urls = [
 
 # ✅ Define Pydantic model for scraped F1 data , as this is how we will get to see data in the output
 class F1Data(BaseModel):
-    url: Httpurl
+    url: HttpUrl
     title:str
     content:str
 
@@ -32,7 +32,7 @@ async def scrape_f1_website(url: str) -> List[F1Data]: # A list containing eleme
     await page.goto(url, {"waitUntil": "domcontentloaded"})
     await page.waitForSelector("body") 
     
-    html = page.content() #Get the full HTML contents of the page.
+    html = await page.evaluate("document.documentElement.innerHTML")  # ✅ Correct
     await browser.close()
     
     #after this BeautifulSoup will function
@@ -67,6 +67,8 @@ async def scrape_f1_website(url: str) -> List[F1Data]: # A list containing eleme
             title = section.get_text().strip()
             next_sibling = section.find_next_sibling(["p", "div"])  # Look for the next paragraph or div
             
+            content = "No content available"  # ✅ Default value to prevent errors
+            
             if next_sibling:
                 content = next_sibling.get_text(separator="\n").strip()
             
@@ -94,11 +96,16 @@ async def main():
         #Converts a Pydantic model to a Python dictionary. article.dict()
         #Converts all F1Article objects into dictionaries. [article.dict() for article in articles]
         #Adds those dictionaries into all_data for further use (e.g., saving to JSON). all_data.extend([])
-        all_data.extend([article.dict() for article in articles]) 
+        #This prevents the TypeError and ensures JSON can be saved correctly.
+        all_data.extend([article.model_dump(mode="json") for article in articles])
     
     #now we need to open one JSON file that will keep the HTML
     #Open the file for writing. Truncates the file if it already exists. Creates a new file if it does not exist.
-    with open("scrapy/scraped_f1_data.json", "r") as file:
-        json.dumps(all_data,file, indent=4)
+    with open("scraped_f1_data.json", "w") as file:
+        json.dump(all_data, file, indent=4)  
         
     print("Scraping completed. Data saved.")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
