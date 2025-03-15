@@ -1,9 +1,27 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
-# Function to process scraped F1 content into Q&A format
+# ✅ Load environment variables
+load_dotenv()
+
+# Load OpenAI API key
+openai_api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(openai_api_key=openai_api_key)
+
+def generate_question(text):
+    """Uses OpenAI to generate a relevant question based on the given text."""
+    prompt = f"Generate a question based on the following information:\n{text}\n\nQuestion:"
+    response = client.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content.strip()
+
 def split_f1_data(input_text):
     """
-    Splits F1-related scraped text into structured questions and answers.
+    Processes F1-related scraped text into structured questions and answers.
     
     Args:
         input_text (dict): Dictionary with "title" and "content" keys.
@@ -13,46 +31,20 @@ def split_f1_data(input_text):
     """
     output_dict = {"title": input_text["title"]}
 
-    # Split content into lines
-    all_lines = input_text["content"].split("\n")
+    # Split content into chunks
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    text_chunks = text_splitter.split_text(input_text["content"])
 
-    # Identify lines that contain questions
-    question_lines = [i for i, line in enumerate(all_lines) if "?" in line]
-
-    # Initialize lists for questions and answers
     questions = []
-    paragraphs = []
+    answers = []
 
-    # If the first line is not a question, treat it as an intro
-    if question_lines and question_lines[0] != 0:
-        output_dict["first_paragraph"] = "\n".join(all_lines[:question_lines[0] - 1])
-    else:
-        output_dict["first_paragraph"] = None
-
-    # Extract Q&A pairs
-    for i in range(len(question_lines) - 1):
-        question = all_lines[question_lines[i]].strip()
-        answer = "\n".join(all_lines[question_lines[i] + 1: question_lines[i + 1]]).strip()
-
-        if question and answer:
+    for chunk in text_chunks:
+        question = generate_question(chunk)  # ✅ Generate a question dynamically
+        if question:
             questions.append(question)
-            paragraphs.append(answer)
-
-    # Handle last Q&A pair
-    if question_lines:
-        last_question = all_lines[question_lines[-1]].strip()
-        last_answer = "\n".join(all_lines[question_lines[-1] + 1:]).strip()
-
-        if last_question and last_answer:
-            questions.append(last_question)
-            paragraphs.append(last_answer)
-
-    # If we have more paragraphs than questions, adjust
-    if len(paragraphs) > len(questions):
-        output_dict["first_paragraph"] = paragraphs[0]
-        paragraphs.pop(0)
+            answers.append(chunk)
 
     output_dict["questions"] = questions
-    output_dict["answers"] = paragraphs
+    output_dict["answers"] = answers
 
     return output_dict

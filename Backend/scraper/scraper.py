@@ -50,19 +50,25 @@ async def scrape_f1_website(url: str) -> List[F1Data]: # A list containing eleme
 
         if title and content:
             try:
-                # ✅ Validate data using Pydantic
+                # ✅ Remove excessive newlines
+                clean_title = " ".join(title.get_text().strip().split())
+                clean_content = " ".join(content.get_text(separator=" ").strip().split())
+                
+               # ✅ Validate data using Pydantic
                 article_data = F1Data(
                     url=url,
-                    title=title.get_text().strip(),
-                    content=content.get_text(separator="\n").strip()
+                    title=clean_title,
+                    content=clean_content
                 )
                 data.append(article_data)
             except Exception as e:
                 print(f"Skipping invalid data: {e}")
-    
+                
+                
+    # ✅ Extract section content
     content_list = []
     for section in sections:
-        title = section.get_text(strip=True)
+        title = " ".join(section.get_text(strip=True).split())  # ✅ Remove newlines
         
         content_list = []
         
@@ -70,7 +76,8 @@ async def scrape_f1_website(url: str) -> List[F1Data]: # A list containing eleme
             if sibling.name in ["h1","h2","h3"]:
                 break
             content_list.append(sibling.get_text())
-        content = "\n".join(content_list).strip() or "No Content Available"
+            
+        content = " ".join(" ".join(content_list).strip().split()) or "No Content Available"
         
         try:
             # ✅ Validate data using Pydantic

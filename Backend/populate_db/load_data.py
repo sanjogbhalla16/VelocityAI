@@ -2,8 +2,9 @@ import json
 import time
 import os
 import asyncio
+import uuid  # ✅ Import UUID for unique document IDs
 from dotenv import load_dotenv
-from langchain_openai import OpenAIEmbeddings
+from openai import OpenAI
 from split_f1_data import split_f1_data  # ✅ Import Q&A splitter
 from create_collection import get_astra_collection  # ✅ Import AstraDB collection setup
 
@@ -15,10 +16,11 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 input_data = os.getenv("SCRAPED_FILE")
 model = os.getenv("VECTOR_MODEL")
 
-# ✅ Initialize LangChain embeddings
-embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key, model=model) if model else OpenAIEmbeddings(openai_api_key=openai_api_key)
+# ✅ Initialize OpenAI client
+client = OpenAI(api_key=openai_api_key)
 
 def get_input_data():
+    """Loads scraped F1 data from a JSON file."""
     print(f"📂 Loading data from: {input_data}")  # Debugging step
 
     if not os.path.exists(input_data):
@@ -28,8 +30,20 @@ def get_input_data():
         return json.load(f)
 
 async def embed(text_to_embed):
-    """Converts text into vector embeddings using LangChain."""
-    return await embeddings.aembed_query(text_to_embed)  # ✅ Corrected async embedding
+    """Generates embeddings using OpenAI's API."""
+    response = await client.embeddings.create(
+        model="text-embedding-ada-002",
+        input=text_to_embed,
+        encoding_format="float"
+    )
+    
+    embedding = response.data[0].embedding  # ✅ Extract embedding vector
+    
+    # ✅ Debugging: Print embedding size
+    print(f"🧠 Generated embedding of size {len(embedding)} for: {text_to_embed[:50]}...")
+
+    return embedding
+
 
 async def main():
     """Processes scraped F1 data, extracts Q&A pairs, and stores them in AstraDB."""
@@ -43,18 +57,19 @@ async def main():
         q_and_a_data = split_f1_data(webpage)  # ✅ Extract Q&A pairs
 
         for i, (question, answer) in enumerate(zip(q_and_a_data["questions"], q_and_a_data["answers"])):
-            # Skip malformed data
+            # ✅ Skip malformed data
             if question.strip() in ["", "?", " Cluster?"]:
                 print("⚠️ Skipping malformed question.")
                 continue
 
-            # ✅ Generate embedding
+            # ✅ Generate embedding using OpenAI SDK
             embedding = await embed(question)
-            time.sleep(1)  # ✅ Avoid rate limits
+            await asyncio.sleep(1)  # ✅ Use async sleep to avoid blocking
 
             # ✅ Prepare document for AstraDB
             to_insert = {
-                "document_id": webpage["url"],
+                "document_id": str(uuid.uuid4()),  # ✅ Unique document ID
+                "source_url": webpage["url"],
                 "question_id": i + 1,
                 "question": question,
                 "answer": answer,
@@ -64,6 +79,7 @@ async def main():
             # ✅ Insert into AstraDB
             collection.insert_one(to_insert)
             print(f"✅ Inserted: {question}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())  # ✅ Run async function

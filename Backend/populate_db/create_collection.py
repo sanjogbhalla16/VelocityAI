@@ -2,8 +2,6 @@ import os
 import sys
 from dotenv import load_dotenv
 from astrapy import DataAPIClient  # ✅ Correct import
-from astrapy.constants import VectorMetric
-from astrapy.info import CollectionDefinition
 
 # Load environment variables
 load_dotenv()
