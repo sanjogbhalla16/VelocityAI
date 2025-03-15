@@ -40,7 +40,7 @@ async def scrape_f1_website(url: str) -> List[F1Data]: # A list containing eleme
     print(soup.prettify())
     
     articles = soup.find_all("article")
-    sections = soup.find_all(["h1", "h2", "h3", "p", "div"])  # Find all relevant tags
+    sections = soup.find_all(["h1", "h2", "h3"])  # Extract section titles
     
     data = []
     
@@ -60,28 +60,28 @@ async def scrape_f1_website(url: str) -> List[F1Data]: # A list containing eleme
             except Exception as e:
                 print(f"Skipping invalid data: {e}")
     
-    
+    content_list = []
     for section in sections:
-        # Extract titles (h1, h2, h3)
-        if section.name in ["h1", "h2", "h3"]:
-            title = section.get_text().strip()
-            next_sibling = section.find_next_sibling(["p", "div"])  # Look for the next paragraph or div
-            
-            content = "No content available"  # ✅ Default value to prevent errors
-            
-            if next_sibling:
-                content = next_sibling.get_text(separator="\n").strip()
-            
-            try:
-                # ✅ Validate using Pydantic
-                section_data = F1Data(
-                    url=url,
-                    title=title,
-                    content=content
-                )
-                data.append(section_data)
-            except Exception as e:
-                print(f"Skipping invalid data: {e}")
+        title = section.get_text(strip=True)
+        
+        content_list = []
+        
+        for sibling in section.find_all_next(["p", "div"]):
+            if sibling.name in ["h1","h2","h3"]:
+                break
+            content_list.append(sibling.get_text())
+        content = "\n".join(content_list).strip() or "No Content Available"
+        
+        try:
+            # ✅ Validate data using Pydantic
+            section_data = F1Data(
+                url=url,
+                title=title,
+                content=content
+            )
+            data.append(section_data)
+        except Exception as e:
+            print(f"Skipping invalid data: {e}")
    
     return data
     

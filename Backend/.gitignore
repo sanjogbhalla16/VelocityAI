@@ -1,2 +1,3 @@
 .venv
 .env
+scraped_f1_data.json

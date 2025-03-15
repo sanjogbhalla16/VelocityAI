@@ -1,11 +1,12 @@
-import os 
+import os
 import sys
 from dotenv import load_dotenv
-from astrapy.db import AstraDB
+from astrapy import DataAPIClient  # ✅ Correct import
+from astrapy.constants import VectorMetric
+from astrapy.info import CollectionDefinition
 
 # Load environment variables
 load_dotenv()
-
 
 # Fetch AstraDB credentials
 token = os.getenv("ASTRA_DB_APPLICATION_TOKEN")
@@ -14,31 +15,32 @@ namespace = os.getenv("ASTRA_DB_NAMESPACE")
 collection_name = os.getenv("ASTRA_DB_COLLECTION")
 dimension = os.getenv("VECTOR_DIMENSION")
 
-
-#check if dimension is set
+# ✅ Ensure dimension is set and valid
 if dimension is None:
-    print("Please set the VECTOR_DIMENSION environment variable to the desired dimension")
+    print("❌ ERROR: Please set the VECTOR_DIMENSION environment variable.")
     sys.exit()
 elif not dimension.isdigit():
-    print("VECTOR_DIMENSION must be an integer")
+    print("❌ ERROR: VECTOR_DIMENSION must be an integer.")
     sys.exit()
 
 dimension = int(dimension)  # Convert to integer ✅
 
-# Create AstraDB client 
-if not namespace:
-    astra_db = AstraDB(token=token, api_endpoint=api_endpoint)
-elif namespace:
-    astra_db = AstraDB(token=token, api_endpoint=api_endpoint, namespace=namespace)
+# ✅ Initialize AstraDB client
+astra_client = DataAPIClient(token=token)
 
+# ✅ Get database reference
+database = astra_client.get_database(api_endpoint)
 
-# checks if the collection is there previously 
-existing_collections = astra_db.get_collections().get('status',{}).get('collections',[])
-
-
-if collection_name in existing_collections:
-    print(f"✅ Collection '{collection_name}' already exists. No new collection created.")
-else:
-    # ✅ Create collection
-    astra_db.create_collection(collection_name=collection_name, dimension=dimension)
+# ✅ Get collection reference
+try:
+    collection = database.get_collection(collection_name)
+    print(f"✅ Collection '{collection_name}' already exists.")
+except Exception:
+    print(f"🚀 Creating new collection '{collection_name}'...")
+    database.create_collection(collection_name, dimension)  # ✅ Correct method
     print(f"🎉 Collection '{collection_name}' created successfully!")
+
+# ✅ Function to return Astra collection
+def get_astra_collection():
+    print(f"✅ Collection '{collection_name}' returned.")
+    return database.get_collection(collection_name)

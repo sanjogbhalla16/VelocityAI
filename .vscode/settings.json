@@ -1,3 +1,9 @@
 {
-  "cSpell.words": ["domcontentloaded", "dotenv", "getall", "keyspace"]
+  "cSpell.words": [
+    "astrapy",
+    "domcontentloaded",
+    "dotenv",
+    "getall",
+    "keyspace"
+  ]
 }
