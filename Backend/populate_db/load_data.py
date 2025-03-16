@@ -17,7 +17,7 @@ input_data = os.getenv("SCRAPED_FILE")
 model = os.getenv("VECTOR_MODEL")
 
 # ✅ Initialize OpenAI client
-client = OpenAI(api_key=openai_api_key)
+client = OpenAI()
 
 def get_input_data():
     """Loads scraped F1 data from a JSON file."""
