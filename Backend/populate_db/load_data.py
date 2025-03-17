@@ -1,14 +1,14 @@
 import json
 import time
 import os
-import asyncio
+# import asyncio
 import uuid  # ✅ Import UUID for unique document IDs
 from dotenv import load_dotenv
 from openai import OpenAI
 from split_f1_data import split_f1_data  # ✅ Import Q&A splitter
 from create_collection import get_astra_collection  # ✅ Import AstraDB collection setup
 
-# ✅ Load environment variables
+# ✅ Load environment variables 
 load_dotenv()
 
 # ✅ Get environment variables
@@ -29,9 +29,9 @@ def get_input_data():
     with open(input_data, "r") as f:
         return json.load(f)
 
-async def embed(text_to_embed):
+def embed(text_to_embed):
     """Generates embeddings using OpenAI's API."""
-    response = await client.embeddings.create(
+    response = client.embeddings.create(
         model="text-embedding-ada-002",
         input=text_to_embed,
         encoding_format="float"
@@ -45,7 +45,7 @@ async def embed(text_to_embed):
     return embedding
 
 
-async def main():
+def main():
     """Processes scraped F1 data, extracts Q&A pairs, and stores them in AstraDB."""
     collection = get_astra_collection()  # ✅ Get AstraDB collection
 
@@ -63,8 +63,8 @@ async def main():
                 continue
 
             # ✅ Generate embedding using OpenAI SDK
-            embedding = await embed(question)
-            await asyncio.sleep(1)  # ✅ Use async sleep to avoid blocking
+            embedding = embed(question)
+            time.sleep(1)  # ✅ Use async sleep to avoid blocking
 
             # ✅ Prepare document for AstraDB
             to_insert = {
@@ -82,4 +82,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())  # ✅ Run async function
+    main()  # ✅ Run async function
