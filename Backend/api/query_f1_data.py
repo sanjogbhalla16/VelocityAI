@@ -1,7 +1,7 @@
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
-from populate_db.create_collection import  get_astra_collection 
+from populate_db.create_collection import get_astra_collection
 from dotenv import load_dotenv
 
 # Load environment variables
