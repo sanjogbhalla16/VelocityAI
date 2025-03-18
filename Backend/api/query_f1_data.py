@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from populate_db.create_collection import get_astra_collection
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables 
 load_dotenv()
 
 # Load OpenAI API key

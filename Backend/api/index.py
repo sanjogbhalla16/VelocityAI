@@ -55,7 +55,7 @@ async def fill_and_send_prompt(query:Query):
     )
     
     bot_response = response.choices[0].message.content.strip()
-    return json.dump({"text":bot_response})
+    return json.dump({"text":bot_response}) 
     
     
 
