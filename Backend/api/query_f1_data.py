@@ -1,7 +1,7 @@
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
-from create_collection import get_astra_collection
+from populate_db.create_collection import get_astra_collection
 from dotenv import load_dotenv
 
 # Load environment variables 
@@ -28,7 +28,7 @@ def get_best_answer(query, k=3):
     
     query_embedding = response["data"][0]["embedding"]
     
-    relevant_docs = collection.find({"$vector": query_embedding}, limit=k)
+    relevant_docs = collection.vector_find(query_embedding, limit=k)
     
     # ✅ Extract answers and URLs
     answers = [doc["answer"] for doc in relevant_docs]
