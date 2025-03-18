@@ -5,5 +5,6 @@
     "dotenv",
     "getall",
     "keyspace"
-  ]
+  ],
+  "python.analysis.extraPaths": ["./Backend/populate_db"]
 }

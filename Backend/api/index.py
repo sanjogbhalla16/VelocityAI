@@ -42,20 +42,20 @@ async def fill_and_send_prompt(query:Query):
     """Handles F1 chatbot queries with RAG-based responses."""
     
     # ✅ Step 1: Retrieve relevant F1 knowledge from AstraDB
-    retrieved_answer = get_best_answer(query.query)
+    retrieved_answer,source_url = get_best_answer(query.query)
     
     # ✅ Step 2: Generate a response based on the retrieved knowledge
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role":"system","content":"You are an expert in the field of F1 Racing and also has all the features of a chatbot."},
-            {"role":"user","content":f"{retrieved_answer}\n\nUser question: {query.prompt}"},
+            {"role":"user","content":f"{retrieved_answer}\n\nUser question: {query.query}"},
         ],
         max_tokens=150
     )
     
     bot_response = response.choices[0].message.content.strip()
-    return json.dump({"text":bot_response}) 
+    return {"text": bot_response, "source": source_url}
     
     
 
