@@ -1,6 +1,10 @@
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+import sys
+# ✅ Get the absolute path of the project root
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(project_root)
 from populate_db.create_collection import get_astra_collection
 from dotenv import load_dotenv
 
@@ -15,7 +19,8 @@ client = OpenAI()
 
 collection = get_astra_collection()  # ✅ Get AstraDB collection
 
-def get_best_answer(query, k=3):
+query = "Who is the Fastest Driver?"
+async def get_best_answer(query: str, k=3):
     """
     Retrieves the most relevant F1 answers from AstraDB using vector search.
     """
@@ -26,15 +31,23 @@ def get_best_answer(query, k=3):
         encoding_format="float"
     )
     
-    query_embedding = response["data"][0]["embedding"]
+    query_embedding = response.data[0].embedding
     
-    relevant_docs = collection.vector_find(query_embedding, limit=k)
+    cursor = collection.find(
+        filter={},
+        sort={"$vector": query_embedding},  # Vector-based search
+        limit=k
+    )
     
-    # ✅ Extract answers and URLs
+    relevant_docs = list(cursor)  # ✅ Correct way to extract documents
+
+
+    # ✅ Extract answers and URLs safely
     answers = [doc["answer"] for doc in relevant_docs]
-    urls = [doc["url"] for doc in relevant_docs]
-    
+    urls = [doc.get("source_url", "N/A") for doc in relevant_docs]  
+
     # ✅ Combine retrieved answers
     retrieved_info = "\n".join(answers)
-
+    
+    print(retrieved_info, urls[0] if urls else "N/A")
     return retrieved_info, urls[0] if urls else "N/A"

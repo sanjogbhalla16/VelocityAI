@@ -42,7 +42,7 @@ async def fill_and_send_prompt(query:Query):
     """Handles F1 chatbot queries with RAG-based responses."""
     
     # ✅ Step 1: Retrieve relevant F1 knowledge from AstraDB
-    retrieved_answer,source_url = get_best_answer(query.query)
+    retrieved_answer,source_url = await get_best_answer(query.query)
     
     # ✅ Step 2: Generate a response based on the retrieved knowledge
     response = client.chat.completions.create(
@@ -55,8 +55,9 @@ async def fill_and_send_prompt(query:Query):
     )
     
     bot_response = response.choices[0].message.content.strip()
+    print(bot_response)
     return {"text": bot_response, "source": source_url}
     
-    
+
 
 
