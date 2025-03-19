@@ -41,10 +41,13 @@ async def get_best_answer(query: str, k=3):
     
     relevant_docs = list(cursor)  # ✅ Correct way to extract documents
 
-
     # ✅ Extract answers and URLs safely
     answers = [doc["answer"] for doc in relevant_docs]
     urls = [doc.get("source_url", "N/A") for doc in relevant_docs]  
+    
+    # ✅ If no relevant data is found, return a default response
+    if not answers:
+        return "Sorry, I couldn't find relevant information for your question.", "N/A"
 
     # ✅ Combine retrieved answers
     retrieved_info = "\n".join(answers)

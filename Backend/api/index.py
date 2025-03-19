@@ -6,6 +6,7 @@ from query_f1_data import get_best_answer
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+from chat_db import insert_chat,get_recent_chats
 
 #A "middleware" is a function that works with every request before it is processed by any specific path operation. And also with every response before returning it.
 
