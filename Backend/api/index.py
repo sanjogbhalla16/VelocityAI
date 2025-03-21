@@ -10,6 +10,7 @@ import sys
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(project_root)
 from populate_db.chat_db import insert_chat,get_recent_chats
+# we need to make the changes here
 
 #A "middleware" is a function that works with every request before it is processed by any specific path operation. And also with every response before returning it.
 
