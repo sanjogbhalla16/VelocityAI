@@ -27,4 +27,14 @@ def get_recent_chats(limit=5):
     cursor.execute("SELECT user_input, bot_response FROM chat_history ORDER BY timestamp DESC LIMIT ?",(limit,))
     return cursor.fetchall()
 
+# # to see the data in the chat history table
+# if __name__ == "__main__":
+#     # Insert a test conversation (optional)
+#     insert_chat("Who won the last F1 race?", "Max Verstappen won the last race.")
+    
+#     # Retrieve and print recent conversations
+#     chats = get_recent_chats(5)
+#     for user_msg,bot_msg in chats:
+#         print(f"User: {user_msg}\nBot: {bot_msg}\n")
+        
 
