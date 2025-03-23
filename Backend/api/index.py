@@ -46,7 +46,7 @@ class Query(BaseModel):
 async def fill_and_send_prompt(query:Query):
     """Handles F1 chatbot queries with RAG-based responses."""
     
-    # ✅ Step 1: Retrieve relevant F1 knowledge from AstraDB
+    # ✅ Retrieve relevant F1 knowledge from AstraDB
     retrieved_answer,source_url = await get_best_answer(query.query)
     
     past_chats = get_recent_chats(limit=5)
@@ -58,6 +58,9 @@ async def fill_and_send_prompt(query:Query):
     
     # ✅ Format chat history into context
     history_text = "\n".join([f"User: {user}\nBot: {bot}" for user, bot in past_chats])
+    
+    # ✅ Construct a strong OpenAI prompt
+     
     
     prompt = f"""
     You are an expert in the field of F1 Racing and also has all the features of a chatbot.
