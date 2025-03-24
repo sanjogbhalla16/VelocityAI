@@ -27,6 +27,7 @@ def get_recent_chats(limit=5):
     cursor.execute("SELECT user_input, bot_response FROM chat_history ORDER BY timestamp DESC LIMIT ?",(limit,))
     return cursor.fetchall()
 
+#this all is working fine 
 # # to see the data in the chat history table
 # if __name__ == "__main__":
 #     # Insert a test conversation (optional)
