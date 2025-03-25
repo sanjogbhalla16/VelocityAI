@@ -52,5 +52,4 @@ async def get_best_answer(query: str, k=3):
     # ✅ Combine retrieved answers
     retrieved_info = "\n".join(answers)
     
-    print(retrieved_info, urls[0] if urls else "N/A")
     return retrieved_info, urls[0] if urls else "N/A"

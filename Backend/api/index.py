@@ -60,42 +60,33 @@ async def fill_and_send_prompt(query:Query):
     history_text = "\n".join([f"User: {user}\nBot: {bot}" for user, bot in past_chats])
     
     # ✅ Construct a strong OpenAI prompt
-     
-    
-    prompt = f"""
-    You are an expert in the field of F1 Racing and also has all the features of a chatbot.
-    
-    **Past Conversations:**
-    {history_text}
+    prompt_messages = [
+        {"role": "system", "content": """You are an expert in the field of F1 Racing and have all the features of a chatbot."""},
+    ]
 
-    **Current User Question:** {query.query}
+    # Add chat history if available
+    if history_text:
+        prompt_messages.append({"role": "user", "content": f"Here is our chat history:\n{history_text}"})
 
-    **Retrieved F1 Knowledge:** 
-    {retrieved_answer}
-    
-    **Instructions:**
-    - Use both the chat history and retrieved F1 knowledge to give the best answer.
-    - If the answer is in the F1 knowledge, prioritize that.
-    - If the user refers to past chats, try to maintain context.
-    - If no relevant information is available, say: "I don't have that information right now, but I can try to help!"
+    # Add retrieved F1 knowledge
+    prompt_messages.append({"role": "user", "content": f"Here is some F1 knowledge related to your query:\n{retrieved_answer}"})
 
-    **Final Answer:**    
-    """
+    # Add user's actual query
+    prompt_messages.append({"role": "user", "content": f"User question: {query.query}"})
     
     # ✅ Step 2: Generate a response based on the retrieved knowledge
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
-        messages=[
-            {"role":"system","content":"You are an expert in the field of F1 Racing and also has all the features of a chatbot."},
-            {"role":"user","content":f"{retrieved_answer}\n\nUser question: {query.query}"},
-        ],
+        messages= prompt_messages,
         max_tokens=150
     )
     
     bot_response = response.choices[0].message.content.strip()
     
      # ✅ Step 4: Store the conversation in SQLite
+    # ✅ Step 5: Store the conversation in SQLite
     insert_chat(query.query, bot_response)
+    
     print(bot_response)
     return {"text": bot_response, "source": source_url}
     
