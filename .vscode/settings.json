@@ -5,7 +5,8 @@
     "domcontentloaded",
     "dotenv",
     "getall",
-    "keyspace"
+    "keyspace",
+    "yxxx"
   ],
   "python.analysis.extraPaths": ["./Backend/populate_db"]
 }
