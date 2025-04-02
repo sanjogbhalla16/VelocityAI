@@ -26,10 +26,6 @@ export function fillMessageParts(messages: Message[]): Message[] {
 
 export function getMessageParts(message: Message): (TextUIPart)[] {
   return (
-    message.parts ?? [
-      ...(message.content
-        ? [{ type: 'text' as const, text: message.content }]
-        : []),
-    ]
+    message.parts ?? [...(message.content ? [{ type: 'text' as const, text: message.content }] : []),]
   );
 }

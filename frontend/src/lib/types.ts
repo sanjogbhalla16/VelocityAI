@@ -37,7 +37,6 @@ export interface Message {
  */
 export type TextUIPart = {
     type: 'text';
-
     /**
      * The text content.
      */

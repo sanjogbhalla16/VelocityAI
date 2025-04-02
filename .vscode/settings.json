@@ -6,6 +6,7 @@
     "dotenv",
     "getall",
     "keyspace",
+    "sonner",
     "yxxx"
   ],
   "python.analysis.extraPaths": ["./Backend/populate_db"]
