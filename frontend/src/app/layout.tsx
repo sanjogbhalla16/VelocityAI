@@ -17,6 +17,7 @@ const description =
   "An AI-powered Formula 1 chatbot delivering real-time race insights, driver stats, and team updates at lightning speed. Stay ahead of the competition with instant F1 knowledge! 🏎️⚡";
 
 export const metadata: Metadata = {
+  //Sets metadata for SEO and social media previews.
   metadataBase: new URL("https://github.com/sanjogbhalla16"),
   title,
   description,
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  //Ensures the website is responsive.
   width: "device-width",
   initialScale: 1,
   minimumScale: 1,
@@ -34,6 +36,7 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({
+  //The children prop represents the page content.
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -45,7 +48,7 @@ export default function RootLayout({
       // visual flicker before hydration. Hence the `suppressHydrationWarning`
       // prop is necessary to avoid the React hydration mismatch warning.
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
-      suppressHydrationWarning
+      suppressHydrationWarning //Prevents hydration mismatch warnings caused by next-themes modifying the <body> class.
     >
       <body className={cn("font-sans antialiased", fontSans.variable)}>
         <ThemeProvider
