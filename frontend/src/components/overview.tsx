@@ -23,13 +23,13 @@ export const Overview = () => {
         </p>
         <p className="gap-1 items-center">
           This is an open-source AI chatbot built with React 19, Next.js 15,
-          Python, FastAPI, and the Ollama SDK. Learn more at{" "}
+          Python, FastAPI, and Langchain. Learn more at{" "}
           <Link
             className="font-medium underline underline-offset-4"
-            href="https://ollama.com/"
+            href="https://www.langchain.com/"
             target="_blank"
           >
-            ollama
+            Langchain
           </Link>{" "}
           and{" "}
           <Link
