@@ -1,5 +1,4 @@
 "use client";
-
 import { ChatInput } from "@/components/chat-input";
 import { Message } from "@/lib/types";
 import { fillMessageParts, generateUUID } from "@/lib/utils";
@@ -7,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import ChatMessage from "./chat-message";
 import { streamChat } from "../lib/clients/streamChatClient";
+import { sendChatMessage, fetchMessages, saveMessage } from "../lib/api";
 
 export function Chat({ id }: { id: string }) {
   // Input state and handlers.
@@ -73,6 +73,8 @@ export function Chat({ id }: { id: string }) {
     async (message: Message) => {
       const inputContent: string = message.content;
       await append(message);
+      await sendChatMessage(inputContent); // optional non-streamed call
+      await streamChat({ inputContent, setIsLoading, append });
       return await streamChat({ inputContent, setIsLoading, append });
     },
     [setIsLoading, append]
