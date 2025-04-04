@@ -3,7 +3,6 @@ import { ChatInput } from "@/components/chat-input";
 import { Message } from "@/lib/types";
 import { fillMessageParts, generateUUID } from "@/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
-import useSWR from "swr";
 import ChatMessage from "./chat-message";
 import { streamChat } from "../lib/clients/streamChatClient";
 import { sendChatMessage, fetchMessages, saveMessage } from "../lib/api";
@@ -13,11 +12,17 @@ export function Chat({ id }: { id: string }) {
   const initialInput = "";
   const [inputContent, setInputContent] = useState<string>(initialInput);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [messages, setMessagesState] = useState<Message[]>([]);
 
-  // Store the chat state in SWR, using the chatId as the key to share states.
-  const { data: messages, mutate } = useSWR<Message[]>([id, "messages"], null, {
-    fallbackData: [],
-  });
+  //load previous chat messages from your backend when the Chat component mounts (or when the id changes)
+  useEffect(() => {
+    const loadMessages = async () => {
+      const fetched: Message[] = await fetchMessages(id);
+      setMessagesState(fillMessageParts(fetched));
+      messagesRef.current = fetched; //Updates a ref so the latest messages are available across re-renders, even inside callbacks (like append()).
+    };
+    loadMessages();
+  }, [id]);
 
   // Keep the latest messages in a ref.
   const messagesRef = useRef<Message[]>(messages || []);
@@ -27,20 +32,22 @@ export function Chat({ id }: { id: string }) {
 
   const setMessages = useCallback(
     (messages: Message[] | ((messages: Message[]) => Message[])) => {
-      if (typeof messages === "function") {
-        messages = messages(messagesRef.current);
-      }
-
-      const messagesWithParts = fillMessageParts(messages);
-      mutate(messagesWithParts, false);
+      const newMessages =
+        typeof messages === "function"
+          ? messages(messagesRef.current)
+          : messages;
+      const messagesWithParts = fillMessageParts(newMessages);
+      setMessagesState(messagesWithParts);
       messagesRef.current = messagesWithParts;
     },
-    [mutate]
+    []
   );
 
   // Append function
   const append = useCallback(
     async (message: Message) => {
+      await saveMessage(id, message);
+
       return new Promise<string | null | undefined>((resolve) => {
         setMessages((draft) => {
           const lastMessage = draft[draft.length - 1];
@@ -65,7 +72,7 @@ export function Chat({ id }: { id: string }) {
         });
       });
     },
-    [setMessages]
+    [id, setMessages]
   );
 
   // Append function
