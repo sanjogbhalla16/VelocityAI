@@ -2,7 +2,7 @@
 
 import sqlite3
 
-connection = sqlite3.connect("chat_history.db")
+connection = sqlite3.connect("chat_history.db",check_same_thread=False)
 cursor = connection.cursor()
 
 cursor.execute("""

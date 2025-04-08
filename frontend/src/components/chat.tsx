@@ -74,7 +74,7 @@ export function Chat({ id }: { id: string }) {
     async (message: Message) => {
       const inputContent: string = message.content;
       await append(message);
-      await sendChatMessage(inputContent); // optional
+      await sendChatMessage(message.content); // optional
       return await streamChat({ inputContent, setIsLoading, append });
     },
     [setIsLoading, append]

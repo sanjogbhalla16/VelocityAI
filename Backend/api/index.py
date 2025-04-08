@@ -93,5 +93,23 @@ async def fill_and_send_prompt(message:Message):
     return {"text": bot_response, "source": source_url}
 
 
+@app.get("/api/chat")
+def get_messages():
+    """Return recent chat messages (used for chat history on frontend)."""
+    past_chats = get_recent_chats(limit=10)  # You can tweak the limit
 
+    # Return messages in the frontend format
+    messages = []
+    for user_msg, bot_msg in past_chats:
+        messages.append({
+            "id": f"user-{hash(user_msg)}",
+            "role": "user",
+            "content": user_msg
+        })
+        messages.append({
+            "id": f"bot-{hash(bot_msg)}",
+            "role": "assistant",
+            "content": bot_msg
+        })
 
+    return messages
