@@ -11,23 +11,25 @@ export const apiClient = axios.create({
 });
 
 // ✅ 1. Fixed: Flatten the request body instead of wrapping in { message }
-export const sendChatMessage = async (content: string) => {
-    const message: Message = {
-        id: uuidv4(),
-        role: "user",
-        content,
-        createdAt: new Date(),
-    };
-
+export const sendChatMessage = async (message: Message) => {
+    console.log("Sending message to backend:", {
+        id: message.id,
+        role: message.role,
+        content: message.content,
+    });
     try {
-        // ✅ Send flat message object
-        const response = await apiClient.post("/chat", message);
+        const response = await apiClient.post("/chat", {
+            id: message.id,
+            role: message.role,
+            content: message.content,
+        });
         return response.data; // { text: "...", source: "..." }
     } catch (error) {
         console.log("Error in sendChatMessage", error);
         throw error;
     }
 };
+
 
 // ✅ 2. Remove chatId from fetchMessages – backend doesn't need it
 export const fetchMessages = async (): Promise<Message[]> => {

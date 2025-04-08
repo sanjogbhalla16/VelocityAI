@@ -1,6 +1,6 @@
+import axios from "axios";
 import { Message } from "@/lib/types";
 import { generateUUID } from "@/lib/utils";
-import { fetchEventSource } from "@microsoft/fetch-event-source";
 
 const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/chat`;
 
@@ -10,65 +10,30 @@ export const streamChat = async ({
     append,
 }: {
     inputContent: string;
-    setIsLoading: (isLoading: boolean) => void; // Add setIsLoading as a parameter
+    setIsLoading: (isLoading: boolean) => void;
     append: (message: Message) => void;
 }) => {
     try {
         setIsLoading(true);
-        // handle streaming response
-        await fetchEventSource(`${apiUrl}`, {
-            method: "POST",
-            headers: {
-                Accept: "text/event-stream",
-                "Content-Type": "application/json", // ✅ Add this line
-            },
-            body: JSON.stringify({ query: inputContent }),
-            onopen: async (res) => { // ✅ Make this function async
-                if (res.ok && res.status === 200) {
-                    console.log("Connection made ", res);
-                } else if (res.status >= 400 && res.status < 500 && res.status !== 429) {
-                    console.log("Client side error ", res);
-                }
-            },
-            onmessage(event) {
-                console.log(`${event.data}`);
-                const text = JSON.parse(event.data);
-                const content: Message = {
-                    id: generateUUID(),
-                    content: text["content"],
-                    role: "assistant",
-                    parts: [{ type: "text", text: text["content"] }],
-                };
 
-                append(content);
-
-                // setMessages((draft) => {
-                //   const lastMessage = draft[draft.length - 1];
-                //   if (lastMessage?.role === "assistant") {
-                //     // console.log(`assistant! data => ${event.data}`);
-                //     // Append to the last assistant message
-                //     return [
-                //       ...draft.slice(0, -1),
-                //       {
-                //         ...lastMessage,
-                //         content: lastMessage.content + text["content"],
-                //       },
-                //     ];
-                //   } else {
-                //     // Add a new assistant message
-                //     return [...draft, content];
-                //   }
-                // });
-            },
-            onclose() {
-                console.log("Connection closed by the server");
-            },
-            onerror(err) {
-                console.log("There was an error from server", err);
-            },
+        const response = await axios.post<{ text: string; source: string }>(apiUrl, {
+            id: generateUUID(),
+            role: "user",
+            content: inputContent,
         });
+
+        const text = response.data.text;
+
+        const content: Message = {
+            id: generateUUID(),
+            content: text,
+            role: "assistant",
+            parts: [{ type: "text", text }],
+        };
+
+        append(content);
     } catch (err) {
-        console.log(`Error when streaming services. Details: ${err}`);
+        console.error("Error in streamChat:", err);
     } finally {
         setIsLoading(false);
     }

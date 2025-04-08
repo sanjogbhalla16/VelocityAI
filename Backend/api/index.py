@@ -80,7 +80,7 @@ async def fill_and_send_prompt(message:Message):
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages= prompt_messages,
-        max_tokens=150
+        max_tokens=1000
     )
     
     bot_response = response.choices[0].message.content.strip()
