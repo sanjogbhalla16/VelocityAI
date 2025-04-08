@@ -1,5 +1,4 @@
 "use client";
-//this is providing predefined actions to us
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { memo } from "react";
@@ -8,14 +7,10 @@ import { generateUUID } from "@/lib/utils";
 import { Overview } from "./overview";
 
 interface SuggestedActionsProps {
-  chatId: string;
   appendAndTrigger: (message: Message) => Promise<void>;
 }
 
-function PureSuggestedActions({
-  chatId,
-  appendAndTrigger,
-}: SuggestedActionsProps) {
+function PureSuggestedActions({ appendAndTrigger }: SuggestedActionsProps) {
   const suggestedActions = [
     {
       title: "Who won the last race?",
@@ -61,8 +56,6 @@ function PureSuggestedActions({
             <Button
               variant="ghost"
               onClick={async () => {
-                window.history.replaceState({}, "", `/chat/${chatId}`);
-
                 appendAndTrigger({
                   id: generateUUID(),
                   role: "user",

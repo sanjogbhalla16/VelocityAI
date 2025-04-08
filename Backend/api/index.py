@@ -37,17 +37,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class Query(BaseModel):
-    query:str
+class Message(BaseModel):
+    id:str
+    role:str
+    content:str
     
 
 # we are posting our query here 
 @app.post("/api/chat")
-async def fill_and_send_prompt(query:Query):
+async def fill_and_send_prompt(message:Message):
     """Handles F1 chatbot queries with RAG-based responses."""
     
     # ✅ Retrieve relevant F1 knowledge from AstraDB
-    retrieved_answer,source_url = await get_best_answer(query.query)
+    retrieved_answer,source_url = await get_best_answer(message.content)
     
     past_chats = get_recent_chats(limit=5)
     
@@ -72,7 +74,7 @@ async def fill_and_send_prompt(query:Query):
     prompt_messages.append({"role": "user", "content": f"Here is some F1 knowledge related to your query:\n{retrieved_answer}"})
 
     # Add user's actual query
-    prompt_messages.append({"role": "user", "content": f"User question: {query.query}"})
+    prompt_messages.append({"role": "user", "content": f"User question: {message.content}"})
     
     # ✅ Step 2: Generate a response based on the retrieved knowledge
     response = client.chat.completions.create(
@@ -85,11 +87,11 @@ async def fill_and_send_prompt(query:Query):
     
      # ✅ Step 4: Store the conversation in SQLite
     # ✅ Step 5: Store the conversation in SQLite
-    insert_chat(query.query, bot_response)
+    insert_chat(message.content, bot_response)
     
     print(bot_response)
     return {"text": bot_response, "source": source_url}
-    
+
 
 
 

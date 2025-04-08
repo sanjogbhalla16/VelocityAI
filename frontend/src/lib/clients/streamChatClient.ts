@@ -2,7 +2,7 @@ import { Message } from "@/lib/types";
 import { generateUUID } from "@/lib/utils";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 
-const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/chat/stream`;
+const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/chat`;
 
 export const streamChat = async ({
     inputContent,

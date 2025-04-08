@@ -9,7 +9,6 @@ import { Message } from "@/lib/types";
 import { SuggestedActions } from "./suggested-actions";
 
 interface ChatInputProps {
-  chatId: string;
   userInput: string;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -19,7 +18,6 @@ interface ChatInputProps {
 }
 
 export function ChatInput({
-  chatId,
   userInput,
   handleInputChange,
   handleSubmit,
@@ -28,8 +26,8 @@ export function ChatInput({
   appendAndTrigger,
 }: ChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [isComposing, setIsComposing] = useState(false); // Composition state
-  const [enterDisabled, setEnterDisabled] = useState(false); // Disable Enter after composition ends
+  const [isComposing, setIsComposing] = useState(false);
+  const [enterDisabled, setEnterDisabled] = useState(false);
 
   const handleCompositionStart = () => setIsComposing(true);
 
@@ -57,15 +55,11 @@ export function ChatInput({
           messages !== undefined && messages.length > 0 ? "px-2 py-4" : "px-6"
         )}
       >
-        {messages === undefined ||
-          (messages.length === 0 && (
-            <div className="mb-6">
-              <SuggestedActions
-                appendAndTrigger={appendAndTrigger}
-                chatId={chatId}
-              />
-            </div>
-          ))}
+        {(messages === undefined || messages.length === 0) && (
+          <div className="mb-6">
+            <SuggestedActions appendAndTrigger={appendAndTrigger} />
+          </div>
+        )}
         <div className="relative flex flex-col w-full gap-2 bg-muted rounded-3xl border border-input">
           <Textarea
             ref={inputRef}
@@ -79,9 +73,7 @@ export function ChatInput({
             spellCheck={false}
             value={userInput}
             className="resize-none w-full min-h-12 bg-transparent border-0 px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            onChange={(e) => {
-              handleInputChange(e);
-            }}
+            onChange={handleInputChange}
             onKeyDown={(e) => {
               if (
                 e.key === "Enter" &&
@@ -110,7 +102,6 @@ export function ChatInput({
                 variant={"outline"}
                 className={cn(isLoading && "animate-pulse", "rounded-full")}
                 disabled={userInput.length === 0 && !isLoading}
-                onClick={isLoading ? stop : undefined}
               >
                 {isLoading ? <Square size={20} /> : <ArrowUp size={20} />}
               </Button>

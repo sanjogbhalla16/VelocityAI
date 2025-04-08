@@ -8,7 +8,10 @@
     "getall",
     "keyspace",
     "Langchain",
+    "setis",
     "sonner",
+    "uuidv",
+    "Verstappen's",
     "yxxx"
   ],
   "python.analysis.extraPaths": ["./Backend/populate_db"]

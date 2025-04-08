@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Message } from "./types"
+import { v4 as uuidv4 } from "uuid";
 
 //create the client for Axios
 export const apiClient = axios.create({
@@ -9,25 +10,29 @@ export const apiClient = axios.create({
     }
 });
 
-export const sendChatMessage = async (message: string) => {
+export const sendChatMessage = async (content: string) => {
+    const message = {
+        id: uuidv4(),
+        role: "user",
+        content,
+        createdAt: new Date(),
+    };
     try {
-        const response = await apiClient.post("/chat", {
-            query: message
-        });
-
-        return response.data;
-    }
-    catch (error) {
+        const response = await apiClient.post("/chat", { message, });
+        return response.data; // { text: "...", source: "..." }
+    } catch (error) {
         console.log("Error in sendChatMessage", error);
-        throw error
+        throw error;
     }
-}
+};
 
-export const fetchMessages = async (chatId: string): Promise<Message[]> => {
-    const response = await axios.get<Message[]>(`${process.env.NEXT_PUBLIC_API_URL}/${chatId}`);
+// ✅ 2. Remove chatId from fetchMessages – backend doesn't need it
+export const fetchMessages = async (): Promise<Message[]> => {
+    const response = await apiClient.get<Message[]>("/chat"); // (Optional, if GET is supported)
     return response.data;
 };
 
-export const saveMessage = async (chatId: string, message: Message): Promise<void> => {
-    await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/${chatId}`, message);
+// ✅ 3. Remove chatId from saveMessage – backend doesn't use it
+export const saveMessage = async (message: Message): Promise<void> => {
+    await apiClient.post("/chat", message); // You may need to adjust this if backend doesn't support saving this way
 };

@@ -8,23 +8,21 @@ import { streamChat } from "../lib/clients/streamChatClient";
 import { sendChatMessage, fetchMessages, saveMessage } from "../lib/api";
 
 export function Chat({ id }: { id: string }) {
-  // Input state and handlers.
   const initialInput = "";
   const [inputContent, setInputContent] = useState<string>(initialInput);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [messages, setMessagesState] = useState<Message[]>([]);
 
-  //load previous chat messages from your backend when the Chat component mounts (or when the id changes)
+  // ✅ Removed the id from fetchMessages()
   useEffect(() => {
     const loadMessages = async () => {
-      const fetched: Message[] = await fetchMessages(id);
+      const fetched: Message[] = await fetchMessages(); // ✅ no id passed
       setMessagesState(fillMessageParts(fetched));
-      messagesRef.current = fetched; //Updates a ref so the latest messages are available across re-renders, even inside callbacks (like append()).
+      messagesRef.current = fetched;
     };
     loadMessages();
-  }, [id]);
+  }, []);
 
-  // Keep the latest messages in a ref.
   const messagesRef = useRef<Message[]>(messages || []);
   useEffect(() => {
     messagesRef.current = messages || [];
@@ -43,10 +41,9 @@ export function Chat({ id }: { id: string }) {
     []
   );
 
-  // Append function
   const append = useCallback(
     async (message: Message) => {
-      await saveMessage(id, message);
+      await saveMessage(message); // ✅ removed id from saveMessage()
 
       return new Promise<string | null | undefined>((resolve) => {
         setMessages((draft) => {
@@ -56,38 +53,33 @@ export function Chat({ id }: { id: string }) {
             lastMessage?.role === "assistant" &&
             message.role === "assistant"
           ) {
-            // Append to the last assistant message
             const updatedMessage = {
               ...lastMessage,
               content: lastMessage.content + message.content,
             };
 
-            resolve(updatedMessage.content); // Resolve with the updated content
+            resolve(updatedMessage.content);
             return [...draft.slice(0, -1), updatedMessage];
           } else {
-            // Add a new message
-            resolve(message.content); // Resolve with the new content
+            resolve(message.content);
             return [...draft, message];
           }
         });
       });
     },
-    [id, setMessages]
+    [setMessages]
   );
 
-  // Append function
   const appendAndTrigger = useCallback(
     async (message: Message) => {
       const inputContent: string = message.content;
       await append(message);
-      await sendChatMessage(inputContent); // optional non-streamed call
-      await streamChat({ inputContent, setIsLoading, append });
+      await sendChatMessage(inputContent); // optional
       return await streamChat({ inputContent, setIsLoading, append });
     },
     [setIsLoading, append]
   );
 
-  // handlers
   const handleInputChange = (e: any) => {
     setInputContent(e.target.value);
   };
@@ -104,15 +96,12 @@ export function Chat({ id }: { id: string }) {
         role: "user",
       };
       append(newMessage);
-
       setInputContent("");
-
       await streamChat({ inputContent, setIsLoading, append });
     },
     [inputContent, setInputContent, setIsLoading, append]
   );
 
-  // handle form submission functionality
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     handleSubmit(e);
   };
@@ -122,7 +111,6 @@ export function Chat({ id }: { id: string }) {
       <ChatMessage isLoading={isLoading} messages={messages} />
 
       <ChatInput
-        chatId={id}
         userInput={inputContent}
         handleInputChange={handleInputChange}
         handleSubmit={onSubmit}
