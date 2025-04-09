@@ -5,23 +5,13 @@ import { fillMessageParts, generateUUID } from "@/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ChatMessage from "./chat-message";
 import { streamChat } from "../lib/clients/streamChatClient";
-import { sendChatMessage, fetchMessages, saveMessage } from "../lib/api";
+import { sendChatMessage, saveMessage } from "../lib/api";
 
 export function Chat({ id }: { id: string }) {
   const initialInput = "";
   const [inputContent, setInputContent] = useState<string>(initialInput);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [messages, setMessagesState] = useState<Message[]>([]);
-
-  // ✅ Removed the id from fetchMessages()
-  useEffect(() => {
-    const loadMessages = async () => {
-      const fetched: Message[] = await fetchMessages(); // ✅ no id passed
-      setMessagesState(fillMessageParts(fetched));
-      messagesRef.current = fetched;
-    };
-    loadMessages();
-  }, []);
 
   const messagesRef = useRef<Message[]>(messages || []);
   useEffect(() => {
@@ -43,7 +33,7 @@ export function Chat({ id }: { id: string }) {
 
   const append = useCallback(
     async (message: Message) => {
-      await saveMessage(message); // ✅ removed id from saveMessage()
+      await saveMessage(message);
 
       return new Promise<string | null | undefined>((resolve) => {
         setMessages((draft) => {
@@ -109,7 +99,6 @@ export function Chat({ id }: { id: string }) {
   return (
     <div className="flex flex-col w-full max-w-3xl pt-14 pb-60 mx-auto stretch">
       <ChatMessage isLoading={isLoading} messages={messages} />
-
       <ChatInput
         userInput={inputContent}
         handleInputChange={handleInputChange}
